@@ -1,4 +1,9 @@
 from psychopy import visual, core, event, sound, prefs
+from pylsl import StreamInfo, StreamOutlet
+
+# setup lsl
+info = StreamInfo('MyMarkerStream', 'Markers', 1, 0, 'string', 'myuidw43536')
+outlet = StreamOutlet(info)
 
 # Set preferred audio engine
 prefs.hardware['audioLib'] = ['sounddevice', 'pyo', 'pygame']
@@ -52,6 +57,7 @@ for t in range(300, exp_duration + 1, 30):
 # Show start screen
 start_text.draw()
 win.flip()
+outlet.push_sample(['start_screen'])
 event.clearEvents()
 event.waitKeys()  # Wait for key press
 
@@ -61,6 +67,7 @@ background.draw()
 coin_text.draw()
 coin_bar.draw()
 win.flip()
+outlet.push_sample(['start_show_bonus'])
 
 # Start timer
 start_time = timer.getTime()
@@ -70,6 +77,7 @@ for time_point in sorted(event_schedule.keys()):
     # Wait until the event time
     while timer.getTime() - start_time < time_point:
         if 'escape' in event.getKeys():
+            outlet.push_sample(['early_exit'])
             win.close()
             core.quit()
         core.wait(0.01)  # Reduce delay for better responsiveness
@@ -91,6 +99,7 @@ for time_point in sorted(event_schedule.keys()):
         coin_text.draw()
         coin_bar.draw()
         win.flip()
+        outlet.push_sample([f'coin_increase_{time_point}'])
 
         core.wait(0.8)  # Remaining time after initial 0.2s
 
@@ -107,6 +116,7 @@ for time_point in sorted(event_schedule.keys()):
             warning_text.draw()
             countdown_text.draw()
             win.flip()
+            outlet.push_sample([f'warning_{time_point}_countdown_{i}'])
             core.wait(1)
 
         alarm_sound.stop()
@@ -118,16 +128,20 @@ for time_point in sorted(event_schedule.keys()):
             result_text.text = 'YOU LOST ALL YOUR COINS!'
             lose_all_sound.play()
             coin_bar.width = 0.4  # Reset bar
+            result_label = 'loss'
         else:
             result_text.text = 'YOU SURVIVED THIS ROUND!'
             relief_sound.play()
+            result_label = 'survived'
 
         # Draw result
         background.draw()
         result_text.draw()
         win.flip()
+        outlet.push_sample([f'result_{time_point}_{result_label}'])
         core.wait(10)  # **Increase display time from 3 sec to 10 sec**
 
 # End of experiment
+outlet.push_sample(['experiment_end'])
 win.close()
 core.quit()
