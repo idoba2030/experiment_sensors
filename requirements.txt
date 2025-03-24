@@ -1,0 +1,4 @@
+psychopy>=2023.1.0
+sounddevice
+pyo
+pygame
