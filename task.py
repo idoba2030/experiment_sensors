@@ -23,7 +23,7 @@ subject_number = subject_info['subject_number']
 prefs.hardware['audioLib'] = ['sounddevice', 'pyo', 'pygame']
 
 win = visual.Window(
-    size=(1280, 720),
+    size=(1920, 1080),
     fullscr=True,
     color=(0, 0, 0),
     monitor='testMonitor',
@@ -166,13 +166,13 @@ for i in range(N_IMAGES):
         current_stim.draw()
         coin_text.draw()
         win.flip()
-        outlet.push_sample([f'image_{image_number}'])  # Send image marker to LSL stream
+        outlet.push_sample(['show_image'])  # Send image marker to LSL stream
         core.wait(0.01)
 
     # --- (B) Bonus: Award bonus if this image is in bonus_images ---
     if image_number in bonus_images:
         coin_earned_sound.play()
-        outlet.push_sample=(['bonus'])  # Send bonus marker to LSL stream
+        outlet.push_sample(['bonus'])  # Send bonus marker to LSL stream
         total_coins += 1  # Award +1₪
         bonus_log.append((subject_number, image_number, total_coins))
         print(f"[Image {image_number}] BONUS awarded -> coins={total_coins}")
@@ -187,9 +187,8 @@ for i in range(N_IMAGES):
     # --- (C) Warning: If this image triggers a warning, show the warning (extra time) ---
     if image_number in warning_images:
         warning_count += 1
-        print(f"[Image {image_number}] WARNING #{warning_count} triggered.")
         alarm_sound.play()
-        outlet.push_sample=(['alarm'])
+        outlet.push_sample(['alarm'])
         countdown_secs = 15  # Countdown duration (seconds)
         for sec in range(countdown_secs, -1, -1):
             if 'escape' in event.getKeys():
@@ -211,11 +210,11 @@ for i in range(N_IMAGES):
             print("   => FORCED LOSS: Second warning reached. Coins reset to 0.")
             total_coins = 0
             lose_all_sound.play()
-            outlet.push_sample=(['lost'])
+            outlet.push_sample(['lost'])
             result_text.text = "YOU LOST ALL YOUR COINS!"
         else:
             relief_sound.play()
-            outlet.push_sample=(['no_lose'])
+            outlet.push_sample(['no_lose'])
             result_text.text = "YOU SURVIVED THIS ROUND!"
 
         # Show result briefly on black screen
@@ -247,6 +246,6 @@ with open("bonus_log.csv", "w", newline="", encoding="utf-8") as csvfile:
 ###############################################################################
 # 10) End of Experiment
 ###############################################################################
-outlet.push_sample=(['end'])
+outlet.push_sample(['end'])
 win.close()
 core.quit()
