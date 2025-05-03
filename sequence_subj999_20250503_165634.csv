@@ -1,0 +1,16 @@
+subject_number,image_number,bonus,warning,loss,coins_after_trial
+999,4,False,False,False,7
+999,6,False,False,True,0
+999,11,False,False,False,2
+999,13,True,False,False,3
+999,15,False,False,False,4
+999,20,True,False,False,6
+999,24,False,False,False,7
+999,30,False,False,False,9
+999,37,False,False,False,11
+999,41,False,False,False,12
+999,43,False,False,False,12
+999,48,False,False,False,13
+999,51,False,False,False,13
+999,56,False,False,False,14
+999,58,False,False,False,14

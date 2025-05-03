@@ -1,12 +1,12 @@
 import os
 from psychopy import visual, core, event, sound, prefs, gui
 import csv
-#from pylsl import StreamInfo, StreamOutlet
+from pylsl import StreamInfo, StreamOutlet
 import time
 
 # setup lsl
 #info = StreamInfo('MyMarkerStream', 'Markers', 1, 0, 'string', 'myuidw43536')
-#outlet = StreamOutlet(info)
+outlet = StreamOutlet(info)
 
 ###############################################################################
 # 1) Get Subject Number via a Dialog
@@ -44,10 +44,12 @@ coin_text = visual.TextStim(
     win,
     text='',
     color='gold',
-    pos=(0, 220),
-    height=40,
+    pos=(0, 350),  # moved higher
+    height=80,     # bigger text
     bold=True
 )
+
+
 warning_text = visual.TextStim(
     win,
     text='',
@@ -84,7 +86,7 @@ lose_all_sound = sound.Sound('stimuli/lose_all.mp3')
 # 3) Timing & Trial Parameters
 ###############################################################################
 N_IMAGES = 60          # total images (or trials)
-TRIAL_DURATION = 2   # seconds per image (2 for testing; 25 for real)
+TRIAL_DURATION = 25   # seconds per image (2 for testing; 25 for real)
 
 ###############################################################################
 # 4) Load Images (native resolution)
@@ -101,7 +103,7 @@ image_files = get_image_files(folder='images', valid_exts=('.jpeg', '.jpg', '.pn
 # Create an ImageStim for each file
 
 # Define a standard image size (adjust as needed)
-STANDARD_SIZE = (600, 400)  # width x height in pixels
+STANDARD_SIZE = (900, 600)  # width x height in pixels
 
 loaded_images = []
 for f in image_files:
@@ -127,7 +129,7 @@ warning_images = [4, 6, 11, 13,15, 20, 24, 30, 37, 41,43, 48, 51, 56,58]#in tota
 # The second warning (i.e., the second time a warning is triggered) causes a forced loss.
 
 # Bonuses: define which image indices yield a bonus (+1₪)
-bonus_images = [1,3,8,10,13,14, 17,20,22,25, 28,31, 36,40, 46, 52, 59]#in total 14 bonuses
+bonus_images = [1,3,8,10,14,22, 28,31, 36,40, 52, 59]#in total 12 bonuses
 
 ###############################################################################
 # 6) Start with 5₪
@@ -140,13 +142,13 @@ coin_text.text = f'Bonus: {total_coins} ₪'
 ###############################################################################
 start_text.draw()
 win.flip()
-#outlet.push_sample(['start_screen'])  # Send start marker to LSL stream
+outlet.push_sample(['start_screen'])  # Send start marker to LSL stream
 event.clearEvents()
 event.waitKeys()
 
 coin_text.draw()
 win.flip()
-#outlet.push_sample(['start_exp'])  # Send start marker to LSL stream
+outlet.push_sample(['start_exp'])  # Send start marker to LSL stream
 
 ###############################################################################
 # 8) Main Loop Over Images / Trials
@@ -170,20 +172,20 @@ for i in range(N_IMAGES):
     image_end_time = core.getTime() + TRIAL_DURATION
     while core.getTime() < image_end_time:
         if 'escape' in event.getKeys():
-            #outlet.push_sample(['early_exit'])
+            outlet.push_sample(['early_exit'])
             win.close()
             core.quit()
 
         current_stim.draw()
         coin_text.draw()
         win.flip()
-        #outlet.push_sample(['show_image'])  # Send image marker to LSL stream
+        outlet.push_sample(['show_image'])  # Send image marker to LSL stream
         core.wait(0.01)
 
     # --- (B) Bonus: Award bonus if this image is in bonus_images ---
     if image_number in bonus_images:
         coin_earned_sound.play()
-        #outlet.push_sample(['bonus'])  # Send bonus marker to LSL stream
+        outlet.push_sample(['bonus'])  # Send bonus marker to LSL stream
         total_coins += 1  # Award +1₪
         print(f"[Image {image_number}] BONUS awarded -> coins={total_coins}")
 
@@ -198,9 +200,9 @@ for i in range(N_IMAGES):
     # --- (C) Warning: If this image triggers a warning, show the warning (extra time) ---
     if image_number in warning_images:
         warning_count += 1
-        #outlet.push_sample(['alarm'])
+        outlet.push_sample(['alarm'])
         alarm_sound.play()
-        countdown_secs = 1  # % Countdown duration (seconds)
+        countdown_secs = 15  # % Countdown duration (seconds)
         for sec in range(countdown_secs, 0, -1):
             if 'escape' in event.getKeys():
                 win.close()
@@ -226,11 +228,11 @@ for i in range(N_IMAGES):
             trial_data['loss'] = True
             trial_data['coins_after_trial'] = total_coins
             lose_all_sound.play()
-            #outlet.push_sample(['lost'])
+            outlet.push_sample(['lost'])
             result_text.text = "YOU LOST ALL YOUR COINS!"
         else:
             relief_sound.play()
-            #outlet.push_sample(['no_lose'])
+            outlet.push_sample(['no_lose'])
             result_text.text = "YOU SURVIVED THIS ROUND!"
 
         # Show result briefly on black screen
@@ -261,6 +263,6 @@ with open(filename, "w", newline="", encoding="utf-8") as csvfile:
 ###############################################################################
 # 10) End of Experiment
 ###############################################################################
-#outlet.push_sample(['end'])
+outlet.push_sample(['end'])
 win.close()
 core.quit()
