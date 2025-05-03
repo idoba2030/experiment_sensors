@@ -2,7 +2,7 @@
 ido_movement/
 venv/
 .env/
-
+exp_sensors/
 # Python bytecode
 __pycache__/
 *.pyc
