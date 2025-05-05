@@ -5,7 +5,7 @@ from pylsl import StreamInfo, StreamOutlet
 import time
 
 # setup lsl
-#info = StreamInfo('MyMarkerStream', 'Markers', 1, 0, 'string', 'myuidw43536')
+info = StreamInfo('MyMarkerStream', 'Markers', 1, 0, 'string', 'myuidw43536')
 outlet = StreamOutlet(info)
 
 ###############################################################################
