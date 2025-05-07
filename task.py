@@ -78,6 +78,7 @@ black_bg = visual.Rect(
 
 # --- Sounds (make sure the sound files exist) ---
 alarm_sound = sound.Sound('stimuli/alarm.mp3')
+new_picture_sound = sound.Sound('stimuli/new_picture.mp3')
 coin_earned_sound = sound.Sound('stimuli/coin_earned.mp3')
 relief_sound = sound.Sound('stimuli/relief.mp3')
 lose_all_sound = sound.Sound('stimuli/lose_all.mp3')
@@ -86,7 +87,7 @@ lose_all_sound = sound.Sound('stimuli/lose_all.mp3')
 # 3) Timing & Trial Parameters
 ###############################################################################
 N_IMAGES = 60          # total images (or trials)
-TRIAL_DURATION = 25   # seconds per image (2 for testing; 25 for real)
+TRIAL_DURATION = 2   # seconds per image (2 for testing; 25 for real)
 
 ###############################################################################
 # 4) Load Images (native resolution)
@@ -181,6 +182,10 @@ for i in range(N_IMAGES):
         win.flip()
         outlet.push_sample(['show_image'])  # Send image marker to LSL stream
         core.wait(0.01)
+        # If no bonus and no warning on this trial, play 'new_picture' sound once
+    if (image_number not in bonus_images) and (image_number not in warning_images):
+            new_picture_sound.play()
+
 
     # --- (B) Bonus: Award bonus if this image is in bonus_images ---
     if image_number in bonus_images:
@@ -207,13 +212,9 @@ for i in range(N_IMAGES):
             if 'escape' in event.getKeys():
                 win.close()
                 core.quit()
-            
-            if sec == 5:  # 10 seconds have passed, replay sound
-                alarm_sound.stop()
-                alarm_sound.play()
             black_bg.draw()
             warning_text.text = (
-                "WARNING! You may lose all your coins now!\n\n"
+                "WARNING!\n\n You may lose all your coins now!\n\n"
                 f"Time remaining: {sec} sec"
             )
             warning_text.draw()
@@ -264,5 +265,22 @@ with open(filename, "w", newline="", encoding="utf-8") as csvfile:
 # 10) End of Experiment
 ###############################################################################
 outlet.push_sample(['end'])
+# End of Experiment
+
+# Final Screen: Wait for Experimenter
+final_text = visual.TextStim(
+    win,
+    text='Please wait for the experimenter to call you.',
+    color='white',
+    height=40,
+    bold=True
+)
+final_text.draw()
+win.flip()
+outlet.push_sample(['final_wait_screen'])
+event.waitKeys()
+
+win.close()
+core.quit()
 win.close()
 core.quit()
